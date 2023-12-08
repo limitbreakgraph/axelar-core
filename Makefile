@@ -2,11 +2,15 @@ PACKAGES=$(shell go list ./... | grep -v '/simulation')
 
 VERSION := $(shell echo $(shell git describe --tags) | sed 's/^v//')
 COMMIT := $(shell git log -1 --format='%H')
+MAX_WASM_SIZE := $(shell echo "$$((3 * 1024 * 1024))")
 
 DOCKER := $(shell which docker)
 DOCKER_BUF := $(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace bufbuild/buf
 HTTPS_GIT := https://github.com/axelarnetwork/axelar-core.git
 PUSH_DOCKER_IMAGE := true
+
+$(info $$WASM is [${WASM}])
+$(info $$CGO_ENABLED is [${CGO_ENABLED}])
 
 ifeq ($(WASM), true)
 WASM_ENABLED := "true"
@@ -39,6 +43,7 @@ ldflags = "-X github.com/cosmos/cosmos-sdk/version.Name=axelar \
 	-X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
 	-X "github.com/cosmos/cosmos-sdk/version.BuildTags=$(BUILD_TAGS)" \
 	-X github.com/cosmos/cosmos-sdk/version.Commit=$(COMMIT) \
+	-X github.com/CosmWasm/wasmd/x/wasm/types/MaxWasmSize=${MAX_WASM_SIZE} \
 	-X github.com/axelarnetwork/axelar-core/x/axelarnet/exported.NativeAsset=$(DENOM) \
 	-X github.com/axelarnetwork/axelar-core/app.WasmEnabled=$(WASM_ENABLED) \
 	-X github.com/axelarnetwork/axelar-core/app.WasmCapabilities=$(WASM_CAPABILITIES) \
